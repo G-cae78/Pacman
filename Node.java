@@ -1,7 +1,7 @@
 public class Node {
     int x, y;
     int g,h,f;
-    Node parent;
+    Node parent; // Field to hold node's parent
     boolean isExpanded;
     boolean isWall;
 
@@ -13,6 +13,10 @@ public class Node {
         isWall=false;
         isExpanded=false;
     }
+
+    /* Methods used by A Star pathfinding algorithm
+       Divided map into nodes for simplicity
+     */
     public void calculateF(){
         f=g+h; // calculating F
     }

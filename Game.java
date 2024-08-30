@@ -6,8 +6,9 @@ import java.io.*;
 
 public class Game extends JFrame implements Runnable, KeyListener, MouseListener, MouseMotionListener {
 
-    private BufferStrategy strategy;
-    private boolean map[][]= new boolean[40][40];
+    private BufferStrategy strategy; //using buffer to prevent flickering
+    private boolean map[][]= new boolean[40][40]; // initialising 40x40 grid map for game
+    /* Initialisjng objects*/
     private Pacman pacman;
     private BadGuy yellow;
     private BadGuy red;
@@ -20,6 +21,7 @@ public class Game extends JFrame implements Runnable, KeyListener, MouseListener
     private Graphics offscreenBuffer;
     ImageIcon icon= new ImageIcon("/Users/georgea.e/Documents/SecondYear2/Next Gen game dev/Pacman/src/Pacman.jpeg");
     public Game(){
+        /* Initialing pop up window for game to run on screen*/
         Dimension screensize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
         int x= screensize.width/2 -400;
         int y= screensize.height/2-400;
@@ -28,6 +30,7 @@ public class Game extends JFrame implements Runnable, KeyListener, MouseListener
         this.setTitle("Pacman");
 
 
+        /* Instantiating game objects and positioning them on accordingly on map*/
         Image img1= icon.getImage().getScaledInstance(50, 50, Image.SCALE_SMOOTH); // Resize the image;
         pacman=new Pacman(img1,18,18);
 
@@ -48,6 +51,7 @@ public class Game extends JFrame implements Runnable, KeyListener, MouseListener
         blue=new BadGuy(img5,36,3);
 
 
+        //Starting Thread
         Thread t= new Thread(this);
         t.start();
 
@@ -55,9 +59,12 @@ public class Game extends JFrame implements Runnable, KeyListener, MouseListener
         strategy= getBufferStrategy();
         offscreenBuffer= strategy.getDrawGraphics();
 
+        // Initialising mouse and key listeners for controlling game characters and communicating with game interface
         addMouseListener(this);
         addMouseMotionListener(this);
         addKeyListener(this);
+
+        //Initialising the front buffer to false so map is not showing till game is initialised
         for(x=0;x<40;x++){
             for(y=0;y<40;y++){
                 map[x][y]=false;
@@ -72,11 +79,14 @@ public class Game extends JFrame implements Runnable, KeyListener, MouseListener
         long loops=0;
         while(true) {
             try {
-                Thread.sleep(200);
+                Thread.sleep(200);//Moving game objects every 200 milliseconds
             } catch (InterruptedException e) {
             }
 
             if (isGameRunning) {
+                /*Everytime pacman moves use A* pathfinding to recalculate shortest distance to pacman
+                for all four ghosts as long as game is started
+                 */
                 pacman.move(map);
                 if (loops % 5 == 0) {
                     red.move(map, pacman.x, pacman.y);
@@ -97,6 +107,9 @@ public class Game extends JFrame implements Runnable, KeyListener, MouseListener
     }
     public void load(){
         String textInput=null;
+        /*Use buffer file reader to regenerate map saved to file previously
+
+         */
         try{
             BufferedReader reader=new BufferedReader(new FileReader("/Users/georgea.e/Documents/SecondYear2/Next Gen game dev/Pacman/src/mazeLoad.txt"));
             textInput=reader.readLine();
@@ -107,10 +120,12 @@ public class Game extends JFrame implements Runnable, KeyListener, MouseListener
             if(textInput!=null){
                 for(int x=0;x<40;x++){
                     for(int y=0;y<40;y++){
-                        map[x][y]=(textInput.charAt(x*40+y)=='1');
+                        map[x][y]=(textInput.charAt(x*40+y)=='1'); //set map front buffer to true(wall) if 1 has been saved to file
                     }
                 }
             }
+
+        // Loading coins after map has been displayed on front buffer to Game user
         int count=0;
         for(int x=0;x<40;x++){
             for(int y=0;y<40;y++){
@@ -128,6 +143,8 @@ public class Game extends JFrame implements Runnable, KeyListener, MouseListener
 
     public void save(){
         String outputText="";
+        //Saving the presence of a wall to file as a 1 and absence as a 0 to outputText String
+        //traversing map and saving figures to output string
         for(int x=0;x<40;x++){
             for(int y=0;y<40;y++){
                 if(map[x][y]){
@@ -138,6 +155,7 @@ public class Game extends JFrame implements Runnable, KeyListener, MouseListener
                 }
             }
         }
+        // Using Buffer file writer to write content of Output string to file
         try{
             BufferedWriter writer=new BufferedWriter(new FileWriter("/Users/georgea.e/Documents/Second Year 2/Next Gen game dev/Pacman/src/mazeLoad.txt"));
             writer.write(outputText);
@@ -168,6 +186,9 @@ public class Game extends JFrame implements Runnable, KeyListener, MouseListener
                 return;
             }
         }
+        /* Each square is 20x20 so this makes sure we are interacting with the right square on the
+           map by dividing by 20
+         */
         int x=e.getX()/20;
         int y=e.getY()/20;
 
@@ -178,6 +199,9 @@ public class Game extends JFrame implements Runnable, KeyListener, MouseListener
     }
 
     public void mouseDragged(MouseEvent e){
+        /* Enabling user to drag across squares to create walls instead of having to click on all of them
+           individually
+         */
         int x=e.getX()/20;
         int y=e.getY()/20;
         if(x!=prevx || y!=prevy){
@@ -197,6 +221,9 @@ public class Game extends JFrame implements Runnable, KeyListener, MouseListener
 
 
     public void keyPressed(KeyEvent e){
+        /* Controlling movement of pacman object
+
+         */
         if(e.getKeyCode()==KeyEvent.VK_LEFT)
             pacman.setXSpeed(-1);
         else if (e.getKeyCode()==KeyEvent.VK_RIGHT)
@@ -206,6 +233,7 @@ public class Game extends JFrame implements Runnable, KeyListener, MouseListener
         else if (e.getKeyCode()==KeyEvent.VK_DOWN)
             pacman.setYSpeed(1);
 
+        //Checking for collision with coins and giving points per coin
         for(Objects obj : coin){
             if(obj!=null && !obj.isEaten()){
                 obj.collisionCheck(pacman);
@@ -236,12 +264,14 @@ public class Game extends JFrame implements Runnable, KeyListener, MouseListener
                 }
             }
         }
+        // Painting image of objects to the screen
         pacman.paint(g);
         pink.paint(g);
         red.paint(g);
         yellow.paint(g);
         blue.paint(g);
 
+        /* removing eaten coins from screen*/
        for(Objects obj:coin){
            if(obj!=null) {
                if(!obj.isEaten())
@@ -252,6 +282,7 @@ public class Game extends JFrame implements Runnable, KeyListener, MouseListener
            }
        }
 
+       // Creating buttons to interact with game
         g.setColor(Color.GREEN);
         g.fillRect(15, 30, 70, 30);
         g.fillRect(315, 30, 70, 30);
@@ -262,7 +293,7 @@ public class Game extends JFrame implements Runnable, KeyListener, MouseListener
         g.drawString("Load", 322, 60);
         g.drawString("Save", 422, 60);
 
-
+        //displaying front buffer to screen
         strategy.show();
     }
     public static void main(String[] args) {

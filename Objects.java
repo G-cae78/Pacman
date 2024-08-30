@@ -9,12 +9,14 @@ public class Objects{
         this.x=x;
         this.y=y;
         this.gameObject=i;
-        this.eaten=false;
+        this.eaten=false; // initialising eaten to false
     }
     public void setEaten(){
+        //setting eaten to true after collision  with pacman object
         this.eaten=true;
     }
     public boolean isEaten(){
+        //Checking if object has been eaten by pacman
         return eaten;
     }
     public int getWidth(){
@@ -28,6 +30,7 @@ public class Objects{
     }
 
 
+    //Collsion detection algorithm with pacman
     public boolean collisionCheck(Pacman pacman){
         if(((pacman.x < x && pacman.x + pacman.getWidth() > x) || (pacman.x > x && x + getWidth() > pacman.x)) && ((pacman.y < y && pacman.y + pacman.getHeight() > y || (y < pacman.y && y + getHeight() > pacman.y)))){
             setEaten();
@@ -35,6 +38,7 @@ public class Objects{
         }
             return false;
     }
+    // Painting object to screen if not eaten
     public void paint(Graphics g){
         if(!eaten)
         g.drawImage(gameObject,x*20,y*20,null);
